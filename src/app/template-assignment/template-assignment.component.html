@@ -1,0 +1,24 @@
+<div class="template-list">
+  <div *ngFor="let template of templates">
+    <h3>Template {{ template.layout_code }}</h3>
+
+    <div
+      *ngFor="let section of template.layoutSections; let sectionIndex = index"
+    >
+      <div class="section">
+        <h4>Section {{ sectionIndex + 1 }}</h4>
+
+        <div *ngFor="let slot of createSlots(section); let slotIndex = index">
+          <p>
+            {{
+              getProductForSlot(
+                template.id,
+                sectionIndex * section + slotIndex + 1
+              )
+            }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
