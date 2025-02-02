@@ -4,13 +4,19 @@ import { TemplateAssignmentComponent } from './template-assignment/template-assi
 import { HomeComponent } from './home/home.component';
 
 const routes: Routes = [
-  { path: '', component: HomeComponent },
-  { path: 'template-assignment', component: TemplateAssignmentComponent },
-  { path: '**', redirectTo: '', pathMatch: 'full' }
+  {
+    path: '',
+    component: HomeComponent,
+    children: [
+      { path: 'layout/:id', component: TemplateAssignmentComponent },
+      { path: 'layout', component: TemplateAssignmentComponent },
+    ],
+  },
+  { path: '**', redirectTo: '', pathMatch: 'full' },
 ];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}

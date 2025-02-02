@@ -1,50 +1,54 @@
 import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../api.service';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-template-assignment',
   templateUrl: './template-assignment.component.html',
-  styleUrls: ['./template-assignment.component.css']
+  styleUrls: ['./template-assignment.component.css'],
 })
 export class TemplateAssignmentComponent implements OnInit {
-  layoutSections: number[] = [];
-  templates: any[] = [];
+  templateId: string | number = '';
   products: any[] = [];
-  assignedProducts: any[] = [];
+  selectedTemplate: any = null;
 
-  constructor(private apiService: ApiService) { }
+  constructor(
+    private apiService: ApiService,
+    private route: ActivatedRoute,
+    private router: Router
+  ) {}
+
   ngOnInit(): void {
-    this.loadProducts();
-    this.loadAssignedProducts();
-    this.processTemplates();
+    this.route.paramMap.subscribe((params) => {
+      this.templateId = params.get('id') || '';
+      if (!this.templateId) this.router.navigate(['/']);
+      this.getTemplateData();
+    });
   }
 
   loadProducts(): void {
-    this.apiService.getProducts().subscribe((data: any) => {
-      this.products = data;
+    this.apiService.getProducts(this.templateId).subscribe((data: any) => {
+      this.processData(data);
     });
   }
 
-  loadAssignedProducts(): void {
-    this.apiService.getAssignedProducts().subscribe((data: any) => {
-      this.assignedProducts = data;
+  processData(products: any[]) {
+    const rows = this.selectedTemplate?.layout_code.split(':');
+    if (!rows) this.router.navigate(['/']);
+    this.products = rows.map((row: string) => {
+      const data = products.splice(0, parseInt(row));
+      const arr = new Array(parseInt(row))
+        .fill(null)
+        .map((v, i) => data[i] || v);
+      return arr;
     });
   }
 
-  processTemplates(): void {
-    this.templates.forEach(template => {
-      template.layoutSections = template.layout_code.split(':').map((str: string) => Number(str));
+  getTemplateData(): void {
+    this.apiService.getTemplateById(this.templateId).subscribe((data: any) => {
+      if (!data) this.router.navigate(['/']);
+      this.selectedTemplate = data;
+      this.loadProducts();
     });
-  }
-
-  createSlots(section: number): any[] {
-    return new Array(section).fill(0);
-  }
-
-  getProductForSlot(templateId: number, sectionNumber: number): string {
-    const assignment = this.assignedProducts.find(
-      (item) => item.templateId === templateId && item.sectionNumber === sectionNumber
-    );
-    return assignment && assignment.productId ? `Product ID: ${assignment.productId}` : 'Empty Slot';
   }
 }
